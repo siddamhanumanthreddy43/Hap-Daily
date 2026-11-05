@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+
+{% block title %}Store Owner Dashboard - Arokya Milk Store Control Center{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <!-- Dashboard Header -->
+    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <img src="/static/images/logo.png" alt="HAP daily" class="h-16 w-auto object-contain rounded-2xl border border-orange-200 shadow-xs shrink-0 hidden sm:block">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+                    <i class="fa-solid fa-crown text-amber-500"></i> Store Owner Portal
+                </div>
+                <h1 class="font-brand text-3xl sm:text-4xl font-extrabold text-slate-900">
+                    Arokya Milk Store Dispatch & Orders
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">
+                    Fulfill incoming orders, update dairy pricing, verify UPI payments, and add new inventory.
+                </p>
+            </div>
+        </div>
+
+        <!-- Header Action Buttons -->
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{% url 'owner_upi_settings' %}" class="px-4 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-bold transition-all flex items-center gap-2 shadow-2xs">
+                <i class="fa-solid fa-qrcode text-indigo-600"></i> UPI & QR Settings
+            </a>
+            <a href="#price-manager-section" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all flex items-center gap-2 shadow-2xs">
+                <i class="fa-solid fa-indian-rupee-sign text-emerald-600"></i> Quick Price Editor
+            </a>
+            <a href="{% url 'owner_product_create' %}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle"></i>
+                <span>Add Product with Image</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Analytics / KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <!-- Revenue -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs col-span-2 sm:col-span-1">
+            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Total Revenue</span>
+            <span class="font-brand font-extrabold text-2xl text-slate-900 mt-1 block">₹{{ total_revenue }}</span>
+            <span class="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-arrow-trend-up"></i> Lifetime sales
+            </span>
+        </div>
+
+        <!-- Pending Orders -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs relative overflow-hidden">
+            {% if pending_orders_count > 0 %}
+            <span class="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+            {% endif %}
+            <span class="text-xs text-amber-700 font-semibold uppercase tracking-wider block">Pending Action</span>
+            <span class="font-brand font-extrabold text-2xl text-amber-600 mt-1 block">{{ pending_orders_count }}</span>
+            <span class="text-[11px] text-slate-400 mt-1 block">Requires Accept/Reject</span>
+        </div>
+
+        <!-- Accepted / In Prep -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
+            <span class="text-xs text-blue-700 font-semibold uppercase tracking-wider block">Accepted / Packed</span>
+            <span class="font-brand font-extrabold text-2xl text-blue-600 mt-1 block">{{ accepted_orders_count }}</span>
+            <span class="text-[11px] text-slate-400 mt-1 block">Ready for packing</span>
+        </div>
+
+        <!-- Out for Delivery -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
+            <span class="text-xs text-purple-700 font-semibold uppercase tracking-wider block">On Route</span>
+            <span class="font-brand font-extrabold text-2xl text-purple-600 mt-1 block">{{ out_for_delivery_count }}</span>
+            <span class="text-[11px] text-slate-400 mt-1 block">With delivery agent</span>
+        </div>
+
+        <!-- Delivered -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
+            <span class="text-xs text-emerald-700 font-semibold uppercase tracking-wider block">Delivered</span>
+            <span class="font-brand font-extrabold text-2xl text-emerald-600 mt-1 block">{{ delivered_orders_count }}</span>
+            <span class="text-[11px] text-slate-400 mt-1 block">Completed dispatches</span>
+        </div>
+    </div>
+
+    <!-- UPI Gateway Status Strip -->
+    <div class="mb-8 p-4 bg-white rounded-3xl border border-indigo-100 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-lg shrink-0 border border-indigo-200/60">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <div>
+                <div class="flex items-center flex-wrap gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Store UPI:</span>
+                    <code class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-900 font-mono font-bold text-xs border border-indigo-200">
+                        {{ upi_setting.upi_id }}
+                    </code>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {% if upi_setting.qr_mode == 'CUSTOM' and upi_setting.custom_qr_image %}bg-purple-100 text-purple-800{% else %}bg-emerald-100 text-emerald-800{% endif %}">
+                        {% if upi_setting.qr_mode == 'CUSTOM' and upi_setting.custom_qr_image %}Custom Standee QR{% else %}Dynamic Amount QR{% endif %}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">Payee: <strong class="text-slate-700">{{ upi_setting.merchant_name }}</strong> • Direct to Bank Account</p>
+            </div>
+        </div>
+        <a href="{% url 'owner_upi_settings' %}" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition-all flex items-center gap-2 shadow-2xs shrink-0">
+            <i class="fa-solid fa-sliders text-indigo-400"></i> Change UPI ID or QR
+        </a>
+    </div>
+
+    <!-- Attention Banner if Pending Orders Exist -->
+    {% if pending_orders_count > 0 %}
+    <div class="mb-8 p-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-3xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-solid fa-bell animate-bounce"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-base">You have {{ pending_orders_count }} incoming order(s) waiting for acceptance!</h3>
+                <p class="text-xs text-amber-100">Review customer delivery slots and click "Accept Order" below to begin packaging.</p>
+            </div>
+        </div>
+        <a href="{% url 'owner_dashboard' %}?status=PENDING" class="px-5 py-2.5 rounded-xl bg-white text-amber-950 font-bold text-xs shadow-xs hover:bg-amber-50 transition-colors shrink-0">
+            View Pending Orders Only
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Filter and Search Strip -->
+    <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs mb-8 space-y-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Search Query -->
+            <form method="GET" class="w-full md:w-80 relative">
+                {% if selected_status and selected_status != 'ALL' %}
+                <input type="hidden" name="status" value="{{ selected_status }}">
+                {% endif %}
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <input type="text" name="q" value="{{ search_q }}"
+                    placeholder="Search by Order #, phone, UTR..."
+                    class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </form>
+
+            <!-- Quick Status Filters -->
+            <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1">
+                <a href="{% url 'owner_dashboard' %}"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all
+                    {% if selected_status == 'ALL' %}bg-slate-900 text-white{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+                    All Orders ({{ total_orders }})
+                </a>
+                <a href="{% url 'owner_dashboard' %}?status=PENDING"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all
+                    {% if selected_status == 'PENDING' %}bg-amber-500 text-white shadow-sm{% else %}bg-amber-50 hover:bg-amber-100 text-amber-900{% endif %}">
+                    Pending ({{ pending_orders_count }})
+                </a>
+                <a href="{% url 'owner_dashboard' %}?status=ACCEPTED"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all
+                    {% if selected_status == 'ACCEPTED' %}bg-blue-600 text-white shadow-sm{% else %}bg-blue-50 hover:bg-blue-100 text-blue-900{% endif %}">
+                    Accepted ({{ accepted_orders_count }})
+                </a>
+                <a href="{% url 'owner_dashboard' %}?status=OUT_FOR_DELIVERY"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all
+                    {% if selected_status == 'OUT_FOR_DELIVERY' %}bg-purple-600 text-white shadow-sm{% else %}bg-purple-50 hover:bg-purple-100 text-purple-900{% endif %}">
+                    Out for Delivery ({{ out_for_delivery_count }})
+                </a>
+                <a href="{% url 'owner_dashboard' %}?status=DELIVERED"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all
+                    {% if selected_status == 'DELIVERED' %}bg-emerald-600 text-white shadow-sm{% else %}bg-emerald-50 hover:bg-emerald-100 text-emerald-900{% endif %}">
+                    Delivered ({{ delivered_orders_count }})
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Orders Feed Section -->
+    <div class="space-y-6 mb-16">
+        <div class="flex items-center justify-between">
+            <h2 class="font-brand font-bold text-xl text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-emerald-600"></i> Customer Orders Feed
+            </h2>
+            <span class="text-xs text-slate-400 font-medium">Showing {{ orders.count }} order(s)</span>
+        </div>
+
+        {% if orders %}
+            {% for order in orders %}
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all p-6 sm:p-8 space-y-5 relative">
+                
+                <!-- PENDING ORDER HIGHLIGHT CALLOUT (To Help Owner Accept Order Quickly) -->
+                {% if order.order_status == 'PENDING' %}
+                <div class="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                            <i class="fa-solid fa-inbox"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-emerald-950 text-sm block">Action Required: New Customer Order</span>
+                            <span class="text-xs text-emerald-700">Click Accept to confirm this delivery and notify packing staff.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <!-- ONE CLICK ACCEPT ORDER -->
+                        <form method="POST" action="{% url 'owner_update_order_status' order.id %}" class="w-full sm:w-auto">
+                            {% csrf_token %}
+                            <input type="hidden" name="order_status" value="ACCEPTED">
+                            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs tracking-wide shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
+                                <i class="fa-solid fa-circle-check text-sm"></i>
+                                <span>ACCEPT ORDER</span>
+                            </button>
+                        </form>
+                        <!-- REJECT ORDER -->
+                        <form method="POST" action="{% url 'owner_update_order_status' order.id %}" onsubmit="return confirm('Reject and cancel this order?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="order_status" value="CANCELLED">
+                            <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors">
+                                Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Order Header Row -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center text-xl font-bold shrink-0">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-brand font-extrabold text-slate-900 text-xl">#{{ order.order_number }}</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border {{ order.status_badge_color }}">
+                                    {{ order.get_order_status_display }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Customer: <strong class="text-slate-800">{{ order.customer.get_full_name|default:order.customer.username }}</strong>
+                                • Phone: <a href="tel:{{ order.delivery_phone }}" class="text-emerald-700 font-semibold">{{ order.delivery_phone }}</a>
+                                • Received {{ order.created_at|timesince }} ago
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Amount & Delivery Window -->
+                    <div class="flex items-center justify-between lg:justify-end gap-6">
+                        <div>
+                            <span class="text-xs text-slate-400 block font-medium">Delivery Slot</span>
+                            <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md inline-block">
+                                <i class="fa-solid fa-clock mr-1 text-slate-500"></i> {{ order.get_delivery_slot_display }}
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block font-medium">Order Total</span>
+                            <span class="font-brand font-extrabold text-2xl text-emerald-700">₹{{ order.total_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle Grid: Items, Address, and Payment info -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-700">
+                    
+                    <!-- Items -->
+                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60">
+                        <span class="font-bold text-slate-900 block mb-2 uppercase tracking-wider text-[11px]">Ordered Dairy Products</span>
+                        <ul class="space-y-1.5 divide-y divide-slate-100">
+                            {% for item in order.items.all %}
+                            <li class="pt-1 flex justify-between items-center">
+                                <span><strong>{{ item.product_name }}</strong> ({{ item.unit }}) × {{ item.quantity }}</span>
+                                <span class="font-semibold text-slate-900">₹{{ item.subtotal }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Delivery Address & Notes -->
+                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60">
+                        <span class="font-bold text-slate-900 block mb-1 uppercase tracking-wider text-[11px]">Delivery Destination</span>
+                        <p class="text-slate-600 leading-relaxed">{{ order.delivery_address }}</p>
+                        {% if order.notes %}
+                        <div class="mt-2 pt-2 border-t border-slate-200 text-slate-500">
+                            <span class="font-semibold text-slate-700">Note:</span> {{ order.notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Mode & Verification -->
+                    <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 space-y-2">
+                        <span class="font-bold text-slate-900 block uppercase tracking-wider text-[11px]">Payment Status</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500">Mode:</span>
+                            <span class="font-bold text-slate-800">{{ order.get_payment_method_display }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500">Status:</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ order.payment_badge_color }}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </div>
+
+                        {% if order.payment_method == 'UPI' %}
+                        <div class="pt-2 border-t border-slate-200">
+                            <span class="text-slate-500 block">Submitted UTR / Ref:</span>
+                            {% if order.upi_ref_number %}
+                            <code class="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded block mt-0.5">{{ order.upi_ref_number }}</code>
+                            {% else %}
+                            <span class="text-amber-600 font-semibold block mt-0.5">Not submitted yet by customer</span>
+                            {% endif %}
+
+                            <!-- Verification Button for UPI -->
+                            {% if order.payment_status != 'VERIFIED' %}
+                            <form method="POST" action="{% url 'owner_update_payment_status' order.id %}" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="payment_status" value="VERIFIED">
+                                <button type="submit" class="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-2xs transition-colors flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Verify UPI Payment</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <!-- Action Toolbar: One-Click Quick Status Advancer -->
+                <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        {% if order.order_status == 'ACCEPTED' %}
+                            <!-- Dispatch Out for Delivery -->
+                            <form method="POST" action="{% url 'owner_update_order_status' order.id %}" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="order_status" value="OUT_FOR_DELIVERY">
+                                <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-truck-fast"></i>
+                                    <span>Dispatch (Mark Out for Delivery)</span>
+                                </button>
+                            </form>
+                        {% elif order.order_status == 'OUT_FOR_DELIVERY' %}
+                            <!-- Mark Delivered -->
+                            <form method="POST" action="{% url 'owner_update_order_status' order.id %}" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="order_status" value="DELIVERED">
+                                <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-box-check"></i>
+                                    <span>Mark as Delivered</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <!-- Jump Status Dropdown -->
+                    <form method="POST" action="{% url 'owner_update_order_status' order.id %}" class="flex items-center gap-2">
+                        {% csrf_token %}
+                        <span class="text-xs text-slate-400 font-medium hidden sm:inline">Change Status:</span>
+                        <select name="order_status" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            {% for code, label in status_choices %}
+                            <option value="{{ code }}" {% if order.order_status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
+                            Update
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs max-w-lg mx-auto">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-3xl mx-auto mb-4">
+                <i class="fa-solid fa-inbox"></i>
+            </div>
+            <h3 class="font-brand font-bold text-xl text-slate-800">No Orders in this View</h3>
+            <p class="text-sm text-slate-500 mt-1">There are no orders matching your current filter status.</p>
+            <div class="mt-6">
+                <a href="{% url 'owner_dashboard' %}" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-sm">
+                    Show All Orders
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- DEDICATED SECTION 1: ADD NEW PRODUCT WITH IMAGES (Owner Quick Action) -->
+    <div class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white rounded-3xl p-8 mb-16 shadow-xl relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="max-w-xl text-center md:text-left">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-amber-950 uppercase tracking-wider inline-block mb-3">
+                    Inventory Management
+                </span>
+                <h2 class="font-brand text-3xl font-extrabold text-white">Add New Dairy Products with Images</h2>
+                <p class="text-sm text-emerald-100 mt-2 leading-relaxed">
+                    Easily upload fresh farm whole milk, curd varieties, cottage cheese, desi ghee, or artisan ice creams with photos, packaging units, and stock quantities.
+                </p>
+            </div>
+            <a href="{% url 'owner_product_create' %}" class="px-8 py-4 rounded-2xl bg-white text-emerald-900 hover:bg-emerald-50 font-bold text-sm shadow-lg transition-all flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-cloud-arrow-up text-emerald-600 text-base"></i>
+                <span>Open Product Creator & Upload Image</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- DEDICATED SECTION 2: QUICK DAIRY PRICE & STOCK EDITOR -->
+    <div id="price-manager-section" class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div>
+                <h2 class="font-brand font-bold text-2xl text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-tags text-emerald-600"></i> Quick Dairy Price & Stock Editor
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Directly adjust product prices in ₹ INR, increase stock counts, or toggle availability with instant save.
+                </p>
+            </div>
+            <a href="{% url 'owner_product_list' %}" class="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                <span>View Full Table</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for prod in all_products %}
+            <div class="bg-slate-50/70 rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-between hover:border-emerald-300 transition-colors">
+                
+                <!-- Product Basic Info -->
+                <div class="flex items-start gap-3 mb-3">
+                    <img src="{{ prod.get_image_url }}" alt="{{ prod.name }}"
+                        class="w-14 h-14 rounded-xl object-cover bg-white border border-slate-200 shrink-0">
+                    <div class="flex-grow">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                            {{ prod.get_category_display }}
+                        </span>
+                        <h4 class="font-bold text-slate-900 text-sm mt-0.5 line-clamp-1">{{ prod.name }}</h4>
+                        <span class="text-xs text-slate-500">Unit: {{ prod.unit }}</span>
+                    </div>
+                </div>
+
+                <!-- Instant Edit Form -->
+                <form method="POST" action="{% url 'owner_update_price' prod.id %}" class="space-y-3 pt-2 border-t border-slate-200/60">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-600 mb-1">Price (₹)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 font-bold">₹</span>
+                                <input type="number" step="0.50" name="price" value="{{ prod.price }}" required
+                                    class="w-full pl-6 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 mb-1">Stock Units</label>
+                            <input type="number" name="stock_quantity" value="{{ prod.stock_quantity }}" required
+                                class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <!-- Toggle Availability -->
+                        <span class="text-[11px] font-medium {% if prod.is_available %}text-emerald-700{% else %}text-slate-400{% endif %}">
+                            <span class="inline-block w-2 h-2 rounded-full {% if prod.is_available %}bg-emerald-500{% else %}bg-slate-400{% endif %} mr-1"></span>
+                            {% if prod.is_available %}In Stock{% else %}Disabled{% endif %}
+                        </span>
+
+                        <div class="flex items-center gap-1.5">
+                            <a href="{% url 'owner_product_edit' prod.id %}" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Full Edit with Photo">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <form method="POST" action="{% url 'owner_product_delete' prod.id %}" class="inline" onsubmit="return confirm('Completely delete {{ prod.name|escapejs }}? This will permanently remove it from the store catalog.');">
+                                {% csrf_token %}
+                                <button type="submit" class="p-1.5 rounded-lg text-rose-400 hover:text-rose-700 hover:bg-rose-100 transition-colors" title="Completely Delete Old Product">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                            <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-check text-[10px]"></i>
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

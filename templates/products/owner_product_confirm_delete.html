@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Product: {{ product.name }} - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xl p-8 sm:p-10 text-center space-y-6">
+        
+        <div class="w-20 h-20 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-3xl mx-auto shadow-inner">
+            <i class="fa-solid fa-trash-can"></i>
+        </div>
+
+        <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-3 py-1 rounded-full">
+                Permanent Deletion
+            </span>
+            <h1 class="font-brand text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">
+                Completely Delete Product?
+            </h1>
+            <p class="text-sm text-slate-500 mt-2">
+                Are you sure you want to completely remove this dairy product from the catalog? This action cannot be undone.
+            </p>
+        </div>
+
+        <!-- Product Preview Box -->
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left flex items-center gap-4">
+            <img src="{{ product.get_image_url }}" alt="{{ product.name }}"
+                class="w-16 h-16 rounded-xl object-cover bg-white border border-slate-200 shrink-0">
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                    {{ product.get_category_display }}
+                </span>
+                <h3 class="font-bold text-slate-900 text-base mt-0.5">{{ product.name }}</h3>
+                <p class="text-xs text-slate-500 font-medium">Unit: {{ product.unit }} • Price: ₹{{ product.price }} • Stock: {{ product.stock_quantity }} units</p>
+            </div>
+        </div>
+
+        <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200/80 text-left text-xs text-amber-900 space-y-1">
+            <span class="font-bold flex items-center gap-1.5 text-amber-950">
+                <i class="fa-solid fa-circle-exclamation text-amber-600"></i> What happens when deleted:
+            </span>
+            <p class="text-amber-800">
+                • The item will be permanently removed from customer shop menus immediately.<br>
+                • Past customer orders and historical receipts will remain intact with the saved product name and price.
+            </p>
+        </div>
+
+        <!-- Action Form -->
+        <form method="POST" action="{% url 'owner_product_delete' product.id %}" class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {% csrf_token %}
+            <a href="{% url 'owner_dashboard' %}"
+                class="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors text-center">
+                No, Keep Product
+            </a>
+            <button type="submit"
+                class="w-full sm:w-auto px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md shadow-rose-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-trash"></i>
+                <span>Yes, Completely Delete</span>
+            </button>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+

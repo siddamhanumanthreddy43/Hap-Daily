@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}My Delivery Cart - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <div class="mb-8">
+        <h1 class="font-brand text-3xl font-extrabold text-slate-900">Your Fresh Basket</h1>
+        <p class="text-sm text-slate-500">Review your farm products, quantities, and morning/evening delivery schedule.</p>
+    </div>
+
+    {% if cart|length > 0 %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Cart Items List (2 cols) -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <span class="font-bold text-slate-900 text-base">Items in Cart ({{ cart|length }})</span>
+                    <a href="{% url 'cart_clear' %}" onclick="return confirm('Clear all items from your basket?');" class="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> Clear Basket
+                    </a>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    {% for item in cart %}
+                    <div id="cart-row-{{ item.product.id }}" class="p-6 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all">
+                        
+                        <!-- Product Info -->
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <img src="{{ item.product.get_image_url }}" alt="{{ item.product.name }}"
+                                class="w-20 h-20 rounded-2xl object-cover bg-slate-100 border border-slate-200 shrink-0">
+                            <div>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                    {{ item.product.get_category_display }}
+                                </span>
+                                <h3 class="font-bold text-slate-900 text-base mt-1">{{ item.product.name }}</h3>
+                                <p class="text-xs text-slate-500">Unit: {{ item.product.unit }} • ₹{{ item.price }} / unit</p>
+                            </div>
+                        </div>
+
+                        <!-- Stepper & Subtotal -->
+                        <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+                            
+                            <!-- Stepper -->
+                            <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
+                                <button type="button" onclick="updateCartItem({{ item.product.id }}, {{ item.quantity }} - 1)"
+                                    class="w-8 h-8 rounded-lg hover:bg-white text-slate-600 flex items-center justify-center font-bold text-xs transition-colors">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <input type="number" id="qty-{{ item.product.id }}" value="{{ item.quantity }}" readonly
+                                    class="w-10 text-center bg-transparent border-0 font-bold text-slate-900 text-sm focus:outline-none">
+                                <button type="button" onclick="updateCartItem({{ item.product.id }}, {{ item.quantity }} + 1)"
+                                    class="w-8 h-8 rounded-lg hover:bg-white text-slate-600 flex items-center justify-center font-bold text-xs transition-colors">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <!-- Subtotal for item -->
+                            <div class="text-right min-w-[80px]">
+                                <span id="item-total-{{ item.product.id }}" class="font-brand font-extrabold text-lg text-slate-900 block">
+                                    ₹{{ item.total_price }}
+                                </span>
+                            </div>
+
+                            <!-- Remove Button -->
+                            <button type="button" onclick="removeCartItem({{ item.product.id }})"
+                                class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
+                                title="Remove">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Delivery Slot note banner -->
+            <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-900 text-xs flex items-center gap-3">
+                <i class="fa-solid fa-sun text-amber-500 text-lg shrink-0"></i>
+                <span>Choose your preferred delivery window during checkout: <strong>Morning (6:00 - 9:00 AM)</strong> or <strong>Evening (5:00 - 8:00 PM)</strong>.</span>
+            </div>
+        </div>
+
+        <!-- Order Summary Card (1 col) -->
+        <div class="space-y-4">
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-5">
+                <h3 class="font-brand font-bold text-slate-900 text-lg">Order Summary</h3>
+
+                <div class="space-y-3 text-sm text-slate-600 border-b border-slate-100 pb-5">
+                    <div class="flex items-center justify-between">
+                        <span>Items Subtotal</span>
+                        <span id="cart-subtotal" class="font-semibold text-slate-900">₹{{ cart.get_subtotal }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <span>Chilled Delivery</span>
+                            <i class="fa-solid fa-circle-question text-slate-300 text-xs" title="Free on orders ₹{{ cart.get_delivery_threshold }} and above"></i>
+                        </span>
+                        <span id="cart-delivery-fee" class="font-semibold">
+                            {% if cart.get_delivery_fee == 0 %}
+                            <span class="text-emerald-600 font-bold uppercase tracking-wide text-xs">FREE</span>
+                            {% else %}
+                            ₹{{ cart.get_delivery_fee }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if cart.get_subtotal < cart.get_delivery_threshold %}
+                    <p class="text-[11px] text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200/60">
+                        <i class="fa-solid fa-truck text-amber-600 mr-1"></i> Add items worth <strong>₹{{ cart.get_delivery_threshold }}</strong> or more to get <strong>Free Delivery</strong>!
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Grand Total -->
+                <div class="flex items-baseline justify-between pt-1">
+                    <div>
+                        <span class="font-bold text-slate-900 text-base block">Total Payable</span>
+                        <span class="text-xs text-slate-400">All local taxes included</span>
+                    </div>
+                    <span id="cart-grand-total" class="font-brand font-extrabold text-3xl text-emerald-700">
+                        ₹{{ cart.get_grand_total }}
+                    </span>
+                </div>
+
+                <!-- Checkout CTA -->
+                <a href="{% url 'checkout' %}" class="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center text-sm shadow-lg shadow-emerald-600/30 active:scale-98 transition-all flex items-center justify-center gap-2">
+                    <span>Proceed to Delivery & Payment</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+
+                <div class="text-center text-xs text-slate-400 pt-2 flex items-center justify-center gap-4">
+                    <span><i class="fa-solid fa-shield-halved text-emerald-600 mr-1"></i> Safe & Pure</span>
+                    <span>•</span>
+                    <span><i class="fa-solid fa-qrcode text-emerald-600 mr-1"></i> UPI & COD</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs max-w-lg mx-auto">
+        <div class="w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-4">
+            <i class="fa-solid fa-basket-shopping"></i>
+        </div>
+        <h3 class="font-brand font-bold text-2xl text-slate-800">Your Fresh Basket is Empty</h3>
+        <p class="text-sm text-slate-500 mt-2">Browse our farm milk, curd, paneer, and rich ice creams to schedule your delivery.</p>
+        <div class="mt-8">
+            <a href="{% url 'catalog' %}" class="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all inline-flex items-center gap-2">
+                <i class="fa-solid fa-cow"></i>
+                <span>Explore Farm Products</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

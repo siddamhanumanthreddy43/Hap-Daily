@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Store Owner Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+                <i class="fa-solid fa-crown"></i> Store Owner Portal
+            </div>
+            <h1 class="font-brand text-3xl font-extrabold text-slate-900">{{ title }}</h1>
+            <p class="text-sm text-slate-500">Configure product specifications, packaging units, pricing, and stock.</p>
+        </div>
+        <a href="{% url 'owner_dashboard' %}" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-10">
+        
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm">
+                <p class="font-bold mb-1">Please fix the form errors below:</p>
+                <ul class="list-disc list-inside text-xs space-y-1">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Product Name -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Product Name <span class="text-rose-500">*</span>
+                </label>
+                {{ form.name }}
+                <p class="text-xs text-slate-400 mt-1">e.g. Farm Fresh Whole Cow Milk, Greek Yogurt, Fresh Malai Paneer</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Category -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Category <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.category }}
+                </div>
+
+                <!-- Unit / Packaging Size -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Packaging Unit / Size <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.unit }}
+                    <p class="text-xs text-slate-400 mt-1">e.g. 500ml, 1 Litre, 200g, 500g, 1 Tub</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Price -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Unit Price (₹ INR) <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.price }}
+                </div>
+
+                <!-- Stock Quantity -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Stock Quantity (Units) <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.stock_quantity }}
+                </div>
+            </div>
+
+            <!-- Is Available Checkbox -->
+            <div class="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                <div>
+                    <span class="block text-sm font-bold text-slate-900">Active in Store Catalog</span>
+                    <span class="text-xs text-slate-500">Uncheck to immediately hide this product from customer order lists.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    {{ form.is_available }}
+                </label>
+            </div>
+
+            <!-- Image Upload & URL fallback -->
+            <div class="border border-slate-200 rounded-2xl p-5 space-y-4 bg-slate-50/50">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Product Photography</h4>
+                
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Upload Image File (ImageField)</label>
+                    {{ form.image }}
+                    <div id="live-image-preview-container" class="hidden mt-3 p-3 bg-white rounded-xl border border-emerald-200">
+                        <span class="text-xs font-bold text-emerald-800 block mb-1">Selected File Preview:</span>
+                        <img id="live-image-preview" src="#" alt="Selected image preview" class="w-32 h-32 object-cover rounded-lg border border-slate-200 shadow-xs">
+                    </div>
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-xs uppercase text-slate-400 font-semibold">Or External Image URL</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Direct Image URL</label>
+                    {{ form.image_url }}
+                </div>
+
+                {% if product and product.get_image_url %}
+                <div class="pt-2">
+                    <span class="text-xs text-slate-500 block mb-1">Current Stored Image:</span>
+                    <img src="{{ product.get_image_url }}" alt="Preview" class="w-24 h-24 object-cover rounded-xl border border-slate-200 shadow-xs">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Description & Nutritional Details
+                </label>
+                {{ form.description }}
+            </div>
+
+            <!-- Submit Button & Danger Zone -->
+            <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                {% if product and product.id %}
+                <button type="button" onclick="confirmDeleteProduct()"
+                    class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Completely Delete Product</span>
+                </button>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <a href="{% url 'owner_dashboard' %}" class="px-5 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-7 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Save Product to Inventory</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        {% if product and product.id %}
+        <!-- Hidden Delete Form -->
+        <form id="delete-product-form" method="POST" action="{% url 'owner_product_delete' product.id %}" class="hidden">
+            {% csrf_token %}
+        </form>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    // Live client-side thumbnail preview for image upload
+    const fileInput = document.querySelector('input[type="file"][name="image"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const [file] = this.files;
+            if (file) {
+                const previewImg = document.getElementById('live-image-preview');
+                const container = document.getElementById('live-image-preview-container');
+                previewImg.src = URL.createObjectURL(file);
+                container.classList.remove('hidden');
+            }
+        });
+    }
+
+    function confirmDeleteProduct() {
+        if (confirm('Are you sure you want to completely and permanently delete this product from the store catalog?')) {
+            document.getElementById('delete-product-form').submit();
+        }
+    }
+</script>
+{% endblock %}
+

@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block title %}UPI & QR Settings - Arokya Milk Store Owner Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Breadcrumb & Navigation -->
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <nav class="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <a href="{% url 'owner_dashboard' %}" class="hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-gauge"></i>
+                <span>Owner Dashboard</span>
+            </a>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+            <span class="text-slate-800 font-bold">UPI & QR Code Settings</span>
+        </nav>
+        <a href="{% url 'owner_dashboard' %}" class="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs">
+            <i class="fa-solid fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+
+    <!-- Header Section -->
+    <div class="mb-8 bg-gradient-to-r from-emerald-900 via-slate-900 to-emerald-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-white pointer-events-none">
+            <i class="fa-solid fa-qrcode"></i>
+        </div>
+        <div class="relative z-10 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold mb-3 border border-emerald-400/30">
+                <i class="fa-solid fa-indian-rupee-sign"></i> Instant Direct-to-Bank Payments
+            </div>
+            <h1 class="font-brand text-3xl sm:text-4xl font-extrabold tracking-tight">
+                UPI & Payment Settings
+            </h1>
+            <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+                Change your shop's UPI ID (VPA) or upload a custom QR standee anytime. All incoming customer UPI payments and QR scans across the store will automatically route to this destination.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Settings Form -->
+        <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 shadow-md p-6 sm:p-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                <div>
+                    <h2 class="font-brand text-xl font-bold text-slate-900">Configure Payment Details</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Edit and save your UPI address and QR preferences</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                </span>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Merchant / Store Name -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        Store / Payee Display Name <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.merchant_name }}
+                    <p class="text-[11px] text-slate-400 mt-1.5">
+                        This name appears inside Google Pay, PhonePe, and Paytm when the customer scans the QR code.
+                    </p>
+                    {% if form.merchant_name.errors %}
+                    <p class="text-xs text-rose-600 mt-1">{{ form.merchant_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- UPI ID / VPA -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                            Store UPI ID (VPA) <span class="text-rose-500">*</span>
+                        </label>
+                        <span class="text-[11px] font-mono text-emerald-700 font-semibold">e.g. mobile@paytm</span>
+                    </div>
+                    {{ form.upi_id }}
+                    
+                    <!-- Quick VPA Suffix Helper Pills -->
+                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span class="text-[10px] text-slate-400 font-semibold mr-1">Quick handle:</span>
+                        <button type="button" onclick="appendUpiHandle('@okaxis')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 text-[11px] font-mono font-medium transition-colors border border-slate-200">@okaxis (GPay)</button>
+                        <button type="button" onclick="appendUpiHandle('@ybl')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 text-[11px] font-mono font-medium transition-colors border border-slate-200">@ybl (PhonePe)</button>
+                        <button type="button" onclick="appendUpiHandle('@paytm')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 text-[11px] font-mono font-medium transition-colors border border-slate-200">@paytm</button>
+                        <button type="button" onclick="appendUpiHandle('@upi')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 text-[11px] font-mono font-medium transition-colors border border-slate-200">@upi (BHIM)</button>
+                        <button type="button" onclick="appendUpiHandle('@okhdfcbank')" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 text-[11px] font-mono font-medium transition-colors border border-slate-200">@okhdfcbank</button>
+                    </div>
+
+                    {% if form.upi_id.errors %}
+                    <p class="text-xs text-rose-600 mt-1">{{ form.upi_id.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- QR Display Mode -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        QR Code Display Mode
+                    </label>
+                    {{ form.qr_mode }}
+                    <div class="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-600 space-y-1">
+                        <p><strong class="text-slate-800">Dynamic QR (Recommended):</strong> Automatically computes and embeds the customer's exact order amount so the customer doesn't have to type anything.</p>
+                        <p><strong class="text-slate-800">Custom Uploaded QR:</strong> Shows your printed store standee QR sticker image directly.</p>
+                    </div>
+                </div>
+
+                <!-- Custom QR Sticker Image Upload -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Custom Store QR Sticker (Optional)
+                    </label>
+                    <p class="text-[11px] text-slate-500 mb-3">
+                        Have a printed or laminated QR standee from PhonePe, Paytm, or Google Pay Business? Upload its photo or scan here:
+                    </p>
+
+                    {% if upi_setting.custom_qr_image %}
+                    <div class="flex items-center gap-4 mb-3 p-3 bg-white rounded-xl border border-slate-200">
+                        <img src="{{ upi_setting.custom_qr_image.url }}?v={{ upi_setting.updated_at.timestamp }}" alt="Current Custom QR" class="w-16 h-16 object-contain rounded-lg border border-slate-100">
+                        <div class="flex-1 min-w-0">
+                            <span class="text-xs font-bold text-slate-800 block truncate">Current Custom QR Active</span>
+                            <span class="text-[11px] text-emerald-600 font-medium">Uploaded Standee Image</span>
+                        </div>
+                        <button type="button"
+                            onclick="if(confirm('Remove custom QR sticker image and revert to Dynamic QR?')) document.getElementById('remove-custom-qr-form').submit();"
+                            class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors border border-rose-200">
+                            <i class="fa-solid fa-trash-can mr-1"></i> Remove
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    <!-- Live Upload Preview Container -->
+                    <div id="new-qr-preview-box" class="hidden mb-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center gap-3">
+                        <img id="new-qr-preview-img" src="" alt="Selected QR preview" class="w-16 h-16 object-contain rounded-lg border border-emerald-300 bg-white">
+                        <div class="text-xs">
+                            <span class="font-bold text-emerald-800 block">Ready to upload!</span>
+                            <span class="text-[11px] text-emerald-600">Click 'Save & Apply' below to activate for all customers.</span>
+                        </div>
+                    </div>
+
+                    {{ form.custom_qr_image }}
+                    {% if form.custom_qr_image.errors %}
+                    <p class="text-xs text-rose-600 mt-1">{{ form.custom_qr_image.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Delivery Fee & Free Delivery Threshold Configuration -->
+                <div class="p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200/80 space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm shadow-xs">
+                            <i class="fa-solid fa-truck"></i>
+                        </span>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">Delivery Fee Settings</h3>
+                            <p class="text-[11px] text-slate-500">Configure delivery charges and free delivery threshold</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Standard Delivery Fee -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                                Standard Delivery Fee (₹) <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold">₹</span>
+                                <div class="pl-5">
+                                    {{ form.delivery_fee }}
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">Charged on orders below free threshold (Reduced to ₹5.00).</p>
+                            {% if form.delivery_fee.errors %}
+                            <p class="text-xs text-rose-600 mt-1">{{ form.delivery_fee.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Free Delivery Minimum Cart Value -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                                Free Delivery Above (₹) <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold">₹</span>
+                                <div class="pl-5">
+                                    {{ form.free_delivery_threshold }}
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">Orders at or above this value get Free Delivery (Default: ₹199.00).</p>
+                            {% if form.free_delivery_threshold.errors %}
+                            <p class="text-xs text-rose-600 mt-1">{{ form.free_delivery_threshold.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Instructions -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        Instructions on Payment Screen
+                    </label>
+                    {{ form.instructions }}
+                    {% if form.instructions.errors %}
+                    <p class="text-xs text-rose-600 mt-1">{{ form.instructions.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Regenerate Pending Orders Checkbox -->
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+                    <input type="checkbox" name="regenerate_pending_qrs" id="regenerate_pending_qrs" checked
+                        class="w-4 h-4 text-emerald-600 rounded mt-0.5 border-slate-300 focus:ring-emerald-500">
+                    <label for="regenerate_pending_qrs" class="text-xs text-amber-900 font-medium cursor-pointer">
+                        <strong class="font-bold">Update active unpaid orders:</strong> Automatically regenerate QR codes for existing pending UPI orders using this new UPI ID.
+                    </label>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit"
+                        class="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Save & Apply UPI Settings</span>
+                    </button>
+                    <a href="{% url 'owner_dashboard' %}"
+                        class="py-3.5 px-5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-sm transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Column: Live Interactive QR Preview -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Live Preview Card -->
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-md p-6 sm:p-8 text-center sticky top-24">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-3">
+                    <i class="fa-solid fa-eye"></i> Live Customer View Preview
+                </div>
+
+                <h3 class="font-brand text-xl font-extrabold text-slate-900">
+                    {{ upi_setting.merchant_name }}
+                </h3>
+                <div class="mt-1 flex items-center justify-center gap-2">
+                    <span class="text-xs text-slate-500">Active UPI VPA:</span>
+                    <code class="px-2 py-0.5 rounded-md bg-slate-100 font-mono font-bold text-xs text-slate-800 border border-slate-200">
+                        {{ upi_setting.upi_id }}
+                    </code>
+                </div>
+
+                <!-- Preview QR Code Frame -->
+                <div class="mt-6 p-4 rounded-2xl bg-slate-50 border-2 border-emerald-500/80 shadow-sm inline-block">
+                    {% if upi_setting.qr_mode == 'CUSTOM' and upi_setting.custom_qr_image %}
+                    <img src="{{ upi_setting.custom_qr_image.url }}" alt="Custom Store QR Sticker" class="w-56 h-56 mx-auto rounded-xl object-contain">
+                    <span class="block text-[11px] text-purple-700 font-bold uppercase tracking-wider mt-2">Displaying Custom Standee QR</span>
+                    {% else %}
+                    <img src="{{ preview_qr_b64 }}" alt="Dynamic UPI QR Preview" class="w-56 h-56 mx-auto rounded-xl object-contain">
+                    <span class="block text-[11px] text-emerald-700 font-bold uppercase tracking-wider mt-2">Dynamic Sample Order QR (₹150.00)</span>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Scanning Helper -->
+                <div class="mt-4 p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 text-xs text-slate-600">
+                    <p class="font-bold text-emerald-800 flex items-center justify-center gap-1 mb-1">
+                        <i class="fa-solid fa-mobile-screen"></i> Scan to Test Right Now
+                    </p>
+                    <p class="text-[11px] text-slate-500">
+                        Open Google Pay, PhonePe, or Paytm on your smartphone and point your camera at the QR code above to verify that your business name and UPI handle match!
+                    </p>
+                </div>
+
+                <!-- Direct Deep Link Test Button -->
+                <div class="mt-4">
+                    <a href="{{ preview_payload }}" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-up-right-from-square text-emerald-400"></i>
+                        <span>Test UPI Intent Link on Mobile</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Hidden Standalone Form for Deleting Custom QR Sticker Image safely -->
+<form id="remove-custom-qr-form" method="POST" action="{% url 'owner_upi_remove_qr' %}" class="hidden">
+    {% csrf_token %}
+</form>
+
+<script>
+function appendUpiHandle(handle) {
+    const upiInput = document.getElementById('id_upi_id');
+    if (!upiInput) return;
+    let currentVal = upiInput.value.trim();
+    if (currentVal.includes('@')) {
+        currentVal = currentVal.split('@')[0];
+    }
+    if (!currentVal) {
+        currentVal = 'arokyamilk';
+    }
+    upiInput.value = currentVal + handle;
+    upiInput.focus();
+}
+
+// Live client-side preview for custom uploaded QR image
+const customQrInput = document.getElementById('id_custom_qr_image');
+if (customQrInput) {
+    customQrInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const previewBox = document.getElementById('new-qr-preview-box');
+                const previewImg = document.getElementById('new-qr-preview-img');
+                if (previewBox && previewImg) {
+                    previewImg.src = evt.target.result;
+                    previewBox.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+</script>
+{% endblock %}
+

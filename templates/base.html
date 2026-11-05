@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Arokya Milk Store - Pure Farm Fresh Milk & Dairy Delivered Daily{% endblock %}</title>
+
+    <!-- Project Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dairy: {
+                            50: '#F0FDF4',
+                            100: '#DCFCE7',
+                            200: '#BBF7D0',
+                            500: '#22C55E',
+                            600: '#16A34A',
+                            700: '#15803D',
+                            800: '#166534',
+                            900: '#14532D',
+                        },
+                        cream: {
+                            50: '#FFFDF9',
+                            100: '#FEF9EE',
+                            200: '#FDF2D7',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-brand { font-family: 'Outfit', sans-serif; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white text-xs font-medium py-2 px-4 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-amber-950 uppercase tracking-wider">Farm Fresh</span>
+                <span>Direct daily milking • Morning (6-9 AM) & Evening (5-8 PM) doorstep delivery</span>
+            </div>
+            <div class="flex items-center gap-4 text-emerald-100">
+                <span><i class="fa-solid fa-truck-fast text-amber-300 mr-1"></i> Free delivery on orders above ₹199</span>
+                <span class="hidden sm:inline">|</span>
+                <span class="hidden sm:flex items-center gap-1"><i class="fa-solid fa-qrcode text-emerald-300"></i> UPI & COD Accepted</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                
+                <!-- Logo & Brand -->
+                <a href="{% url 'catalog' %}" class="flex items-center gap-3 group">
+                    <img src="/static/images/logo.png" alt="HAP daily Logo" class="h-12 w-auto object-contain rounded-xl shadow-xs border border-orange-200 group-hover:scale-105 transition-transform duration-200">
+                    <div>
+                        <div class="font-brand text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">
+                            Arokya <span class="text-emerald-600">Milk Store</span>
+                        </div>
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-orange-600 -mt-1 flex items-center gap-1">
+                            <span>HAP daily</span> • <span>Dairy Outlet</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Quick Category Links (Desktop) -->
+                <nav class="hidden md:flex items-center gap-1 font-medium text-sm text-slate-600">
+                    <a href="{% url 'catalog' %}" class="px-3 py-2 rounded-lg hover:text-emerald-700 hover:bg-emerald-50 transition-colors">All Items</a>
+                    <a href="{% url 'catalog' %}?category=MILK" class="px-3 py-2 rounded-lg hover:text-emerald-700 hover:bg-emerald-50 transition-colors">Fresh Milk</a>
+                    <a href="{% url 'catalog' %}?category=CURD" class="px-3 py-2 rounded-lg hover:text-emerald-700 hover:bg-emerald-50 transition-colors">Curd & Dahi</a>
+                    <a href="{% url 'catalog' %}?category=PANEER" class="px-3 py-2 rounded-lg hover:text-emerald-700 hover:bg-emerald-50 transition-colors">Paneer</a>
+                    <a href="{% url 'catalog' %}?category=GHEE" class="px-3 py-2 rounded-lg hover:text-emerald-700 hover:bg-emerald-50 transition-colors">Desi Ghee</a>
+                    <a href="{% url 'catalog' %}?category=ICECREAM" class="px-3 py-2 rounded-lg hover:text-emerald-700 hover:bg-emerald-50 transition-colors">Ice Creams</a>
+                </nav>
+
+                <!-- Action Controls: Owner Badge, User Menu, Cart Badge -->
+                <div class="flex items-center gap-3">
+                    
+                    <!-- Owner Portal Button if User is Owner -->
+                    {% if user.is_authenticated and user.is_owner_user %}
+                    <a href="{% url 'owner_dashboard' %}" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-amber-300 font-semibold text-xs tracking-wide shadow-sm hover:shadow transition-all border border-amber-400/30">
+                        <i class="fa-solid fa-crown text-amber-400"></i>
+                        <span>Owner Dashboard</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Cart Trigger Button -->
+                    <a href="{% url 'cart_detail' %}" class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition-colors border border-slate-200">
+                        <i class="fa-solid fa-basket-shopping text-lg"></i>
+                        <span class="cart-badge-count absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shadow-sm {% if cart_count == 0 %}hidden{% endif %}">
+                            {{ cart_count }}
+                        </span>
+                    </a>
+
+                    <!-- User Account Dropdown / Links -->
+                    {% if user.is_authenticated %}
+                    <div class="relative group">
+                        <button type="button" class="flex items-center gap-2 py-1.5 px-3 rounded-xl hover:bg-slate-100 border border-slate-200 text-sm font-medium text-slate-700 transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                                {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            </div>
+                            <span class="hidden sm:inline max-w-[120px] truncate">{{ user.first_name|default:user.username }}</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 mt-1 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 hidden group-hover:block transition-all z-50">
+                            <div class="px-4 py-2 border-b border-slate-100">
+                                <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Signed in as</p>
+                                <p class="text-sm font-bold text-slate-900 truncate">{{ user.get_full_name|default:user.username }}</p>
+                                <span class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full {% if user.is_owner_user %}bg-purple-100 text-purple-800{% else %}bg-emerald-100 text-emerald-800{% endif %}">
+                                    {{ user.get_role_display }}
+                                </span>
+                            </div>
+                            {% if user.is_owner_user %}
+                            <a href="{% url 'owner_dashboard' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">
+                                <i class="fa-solid fa-gauge-high text-amber-500 w-4"></i> Store Management
+                            </a>
+                            <a href="{% url 'owner_upi_settings' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">
+                                <i class="fa-solid fa-qrcode text-indigo-600 w-4"></i> UPI & QR Settings
+                            </a>
+                            <a href="{% url 'owner_product_create' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">
+                                <i class="fa-solid fa-plus-circle text-emerald-600 w-4"></i> Add New Product
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'order_history' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">
+                                <i class="fa-solid fa-box text-slate-400 w-4"></i> My Orders
+                            </a>
+                            <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">
+                                <i class="fa-solid fa-location-dot text-slate-400 w-4"></i> Delivery Address
+                            </a>
+                            <div class="border-t border-slate-100 my-1"></div>
+                            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 font-medium">
+                                <i class="fa-solid fa-arrow-right-from-bracket w-4"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center gap-2">
+                        <a href="{% url 'customer_login' %}" class="px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 hover:bg-slate-100 rounded-xl transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-user text-emerald-600"></i>
+                            <span>Customer Login</span>
+                        </a>
+                        <a href="{% url 'owner_login' %}" class="px-3 py-2 text-xs sm:text-sm font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200 border border-amber-300/80 rounded-xl transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-crown text-amber-600"></i>
+                            <span>Owner Portal</span>
+                        </a>
+                        <a href="{% url 'register' %}" class="hidden sm:inline-flex px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all">
+                            Register
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages Container -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% for message in messages %}
+        <div class="flex items-center justify-between p-4 mb-3 rounded-xl border text-sm font-medium shadow-sm transition-all
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-200
+            {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border-rose-200
+            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border-amber-200
+            {% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check text-emerald-600{% elif message.tags == 'error' %}fa-circle-exclamation text-rose-600{% else %}fa-circle-info text-blue-600{% endif %}"></i>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Floating Toast Notifications for Cart Actions -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 mt-20 border-t border-slate-800">
+        <!-- Trust Badges Strip -->
+        <div class="border-b border-slate-800/80 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center md:text-left">
+                    <div class="flex flex-col md:flex-row items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white text-sm font-bold">100% Purity Certified</h4>
+                            <p class="text-xs text-slate-400">Zero adulterants or added water</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-snowflake"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white text-sm font-bold">4°C Cold Chain</h4>
+                            <p class="text-xs text-slate-400">Chilled farm-to-door logistics</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white text-sm font-bold">Flexible Slots</h4>
+                            <p class="text-xs text-slate-400">Morning (6-9 AM) & Evening (5-8 PM)</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white text-sm font-bold">Instant UPI & COD</h4>
+                            <p class="text-xs text-slate-400">Scan QR via GPay, PhonePe or Cash</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="/static/images/logo.png" alt="HAP daily Logo" class="h-12 w-auto object-contain rounded-xl shadow-md border border-orange-400/30">
+                        <div>
+                            <span class="font-brand text-2xl font-bold text-white tracking-tight">Arokya <span class="text-emerald-400">Milk Store</span></span>
+                            <span class="text-[11px] block font-semibold text-orange-400 uppercase tracking-wider">HAP daily Authorized Outlet</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 max-w-md leading-relaxed mb-4">
+                        Direct from pasture to pitcher. Arokya Milk Store delivers wholesome cow and buffalo milk, fresh curd, soft paneer, and rich ice creams with hygienic morning and evening doorstep service.
+                    </p>
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full"><i class="fa-solid fa-phone text-emerald-400 mr-1.5"></i> +91 98450 11223</span>
+                        <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-full"><i class="fa-solid fa-envelope text-emerald-400 mr-1.5"></i> care@arokyamilk.in</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h5 class="text-white text-sm font-semibold uppercase tracking-wider mb-4">Categories</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{% url 'catalog' %}?category=MILK" class="hover:text-emerald-400 transition-colors">Pure Farm Milk</a></li>
+                        <li><a href="{% url 'catalog' %}?category=CURD" class="hover:text-emerald-400 transition-colors">Curd & Greek Yogurt</a></li>
+                        <li><a href="{% url 'catalog' %}?category=PANEER" class="hover:text-emerald-400 transition-colors">Fresh Malai Paneer</a></li>
+                        <li><a href="{% url 'catalog' %}?category=GHEE" class="hover:text-emerald-400 transition-colors">Desi Cow Ghee</a></li>
+                        <li><a href="{% url 'catalog' %}?category=ICECREAM" class="hover:text-emerald-400 transition-colors">Artisan Ice Creams</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-white text-sm font-semibold uppercase tracking-wider mb-4">Quick Links</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{% url 'catalog' %}" class="hover:text-emerald-400 transition-colors">Browse Catalog</a></li>
+                        <li><a href="{% url 'cart_detail' %}" class="hover:text-emerald-400 transition-colors">My Cart</a></li>
+                        <li><a href="{% url 'order_history' %}" class="hover:text-emerald-400 transition-colors">Track Orders</a></li>
+                        {% if user.is_authenticated and user.is_owner_user %}
+                        <li><a href="{% url 'owner_dashboard' %}" class="text-amber-400 hover:text-amber-300 font-semibold transition-colors flex items-center gap-1.5"><i class="fa-solid fa-crown text-xs"></i> Store Owner Dashboard</a></li>
+                        {% else %}
+                        <li><a href="{% url 'customer_login' %}" class="hover:text-emerald-400 transition-colors">Customer Login</a></li>
+                        <li><a href="{% url 'owner_login' %}" class="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-crown text-xs"></i> Owner Portal Login</a></li>
+                        <li><a href="{% url 'owner_register' %}" class="text-amber-300/80 hover:text-amber-200 transition-colors flex items-center gap-1.5 text-xs"><i class="fa-solid fa-user-plus text-[10px]"></i> Register as New Owner</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <p>&copy; 2026 Arokya Milk Store Inc. All rights reserved.</p>
+                <div class="flex items-center gap-4">
+                    <span>Store UPI VPA: <code class="text-emerald-400 font-mono">arokyamilk@upi</code></span>
+                    <span>•</span>
+                    <span>Built with Python & Django</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core Cart JS Script -->
+    <script src="/static/js/cart.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

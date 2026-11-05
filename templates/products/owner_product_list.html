@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Dairy Products - Arokya Milk Store Owner{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+                <i class="fa-solid fa-crown"></i> Store Management
+            </div>
+            <h1 class="font-brand text-3xl font-extrabold text-slate-900">Inventory Catalog</h1>
+            <p class="text-sm text-slate-500">Monitor stock levels, toggle product availability, or update prices.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'owner_dashboard' %}" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm font-semibold transition-colors">
+                <i class="fa-solid fa-gauge mr-1"></i> Dashboard
+            </a>
+            <a href="{% url 'owner_product_create' %}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition-all flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Add New Product
+            </a>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <tr>
+                        <th scope="col" class="py-4 px-6">Product</th>
+                        <th scope="col" class="py-4 px-6">Category</th>
+                        <th scope="col" class="py-4 px-6">Packaging / Unit</th>
+                        <th scope="col" class="py-4 px-6">Price</th>
+                        <th scope="col" class="py-4 px-6">Stock Left</th>
+                        <th scope="col" class="py-4 px-6">Status</th>
+                        <th scope="col" class="py-4 px-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                    {% for p in products %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-4 px-6 flex items-center gap-3">
+                            <img src="{{ p.get_image_url }}" alt="{{ p.name }}" class="w-12 h-12 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0">
+                            <div>
+                                <span class="font-bold text-slate-900 block">{{ p.name }}</span>
+                                <span class="text-xs text-slate-400">Added {{ p.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800">
+                                {{ p.get_category_display }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 font-mono text-xs">{{ p.unit }}</td>
+                        <td class="py-4 px-6">
+                            <!-- Inline Quick Price Editor -->
+                            <form method="POST" action="{% url 'owner_update_price' p.id %}" class="flex items-center gap-1.5">
+                                {% csrf_token %}
+                                <div class="relative w-24">
+                                    <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 font-bold text-xs">₹</span>
+                                    <input type="number" step="0.50" name="price" value="{{ p.price }}" required
+                                        class="w-full pl-5 pr-1.5 py-1 text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white text-slate-900">
+                                </div>
+                                <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-2xs transition-colors" title="Save new price">
+                                    Save
+                                </button>
+                            </form>
+                        </td>
+                        <td class="py-4 px-6">
+                            {% if p.stock_quantity == 0 %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">0 Units (Out)</span>
+                            {% elif p.stock_quantity < 10 %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">{{ p.stock_quantity }} Units</span>
+                            {% else %}
+                            <span class="text-emerald-700 font-bold">{{ p.stock_quantity }} Units</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6">
+                            <!-- Toggle Stock Button -->
+                            <form method="POST" action="{% url 'owner_toggle_stock' p.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5
+                                    {% if p.is_available %}bg-emerald-100 hover:bg-emerald-200 text-emerald-800{% else %}bg-slate-200 hover:bg-slate-300 text-slate-700{% endif %}">
+                                    <span class="w-2 h-2 rounded-full {% if p.is_available %}bg-emerald-600{% else %}bg-slate-500{% endif %}"></span>
+                                    <span>{% if p.is_available %}Available{% else %}Disabled{% endif %}</span>
+                                </button>
+                            </form>
+                        </td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <a href="{% url 'owner_product_edit' p.id %}" class="p-2 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors inline-block" title="Edit">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <form method="POST" action="{% url 'owner_product_delete' p.id %}" class="inline" onsubmit="return confirm('Completely and permanently delete {{ p.name|escapejs }} from the catalog?');">
+                                {% csrf_token %}
+                                <button type="submit" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Completely Delete Old Product">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-500">
+                            No products in database. Click "Add New Product" to populate your dairy inventory.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

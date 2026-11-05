@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.order_number }} Status - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <!-- Header -->
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <a href="{% url 'order_history' %}" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Back to Orders
+                </a>
+            </div>
+            <h1 class="font-brand text-3xl font-extrabold text-slate-900 flex items-center gap-3">
+                <span>Order #{{ order.order_number }}</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold border {{ order.status_badge_color }}">
+                    {{ order.get_order_status_display }}
+                </span>
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">Placed on {{ order.created_at|date:"l, d F Y - h:i A" }}</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            {% if order.payment_method == 'UPI' and not order.upi_ref_number and order.order_status != 'CANCELLED' %}
+            <a href="{% url 'payment_upi' order.order_number %}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-2">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>Scan UPI / Submit UTR</span>
+            </a>
+            {% endif %}
+
+            {% if order.can_be_cancelled_by_customer %}
+            <form method="POST" action="{% url 'customer_cancel_order' order.order_number %}" onsubmit="return confirm('Are you sure you want to cancel Order #{{ order.order_number }}? This action will cancel your delivery immediately and restore items to inventory.');">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-ban text-rose-500"></i>
+                    <span>Cancel Order</span>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Live Tracking Timeline Progress Bar -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 mb-8">
+        <h3 class="font-brand font-bold text-slate-900 text-lg mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-route text-emerald-600"></i> Live Delivery Tracking
+        </h3>
+
+        {% if order.order_status == 'CANCELLED' %}
+        <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-sm flex items-center gap-3">
+            <i class="fa-solid fa-circle-xmark text-rose-600 text-xl"></i>
+            <div>
+                <span class="font-bold block">This order was cancelled</span>
+                <span class="text-xs">If any payment was debited via UPI, refund will be credited back within 24 hours.</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 relative">
+            {% for step in timeline_steps %}
+            <div class="flex flex-col items-center text-center relative z-10">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-base transition-all
+                    {% if forloop.counter0 <= current_index %}
+                        bg-emerald-600 text-white shadow-md shadow-emerald-200
+                    {% else %}
+                        bg-slate-100 text-slate-400 border border-slate-200
+                    {% endif %}">
+                    {% if forloop.counter0 < current_index %}
+                        <i class="fa-solid fa-check"></i>
+                    {% else %}
+                        {{ forloop.counter }}
+                    {% endif %}
+                </div>
+                <h4 class="font-bold text-sm mt-3 {% if forloop.counter0 <= current_index %}text-slate-900{% else %}text-slate-400{% endif %}">
+                    {{ step.label }}
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5 max-w-[130px]">{{ step.desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Order Items & Details Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Items Table (2 cols) -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="font-brand font-bold text-slate-900 text-lg">Purchased Dairy Items</h3>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    {% for item in order.items.all %}
+                    <div class="p-5 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            {% if item.product and item.product.get_image_url %}
+                            <img src="{{ item.product.get_image_url }}" alt="{{ item.product_name }}" class="w-14 h-14 rounded-xl object-cover bg-slate-100 border border-slate-200">
+                            {% else %}
+                            <div class="w-14 h-14 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                                🥛
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">{{ item.product_name }}</h4>
+                                <p class="text-xs text-slate-400">Unit: {{ item.unit }} • ₹{{ item.unit_price }} each</p>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block font-medium">Qty: {{ item.quantity }}</span>
+                            <span class="font-brand font-bold text-slate-900 text-base">₹{{ item.subtotal }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="p-6 bg-slate-50/70 border-t border-slate-100 space-y-2 text-sm text-slate-600">
+                    <div class="flex justify-between items-center text-base font-bold text-slate-900 pt-2 border-t border-slate-200">
+                        <span>Total Paid / Payable</span>
+                        <span class="font-brand text-2xl text-emerald-700">₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Information Sidebar (1 col) -->
+        <div class="space-y-6">
+            
+            <!-- Delivery Info -->
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-400">Delivery Information</h3>
+                
+                <div>
+                    <span class="text-xs text-slate-400 block">Recipient</span>
+                    <span class="text-sm font-bold text-slate-800">{{ order.customer.get_full_name|default:order.customer.username }}</span>
+                </div>
+
+                <div>
+                    <span class="text-xs text-slate-400 block">Contact Phone</span>
+                    <span class="text-sm font-semibold text-slate-800">{{ order.delivery_phone }}</span>
+                </div>
+
+                <div>
+                    <span class="text-xs text-slate-400 block">Delivery Slot</span>
+                    <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md inline-block mt-0.5">
+                        <i class="fa-solid fa-clock mr-1"></i> {{ order.get_delivery_slot_display }}
+                    </span>
+                </div>
+
+                <div>
+                    <span class="text-xs text-slate-400 block">Address</span>
+                    <p class="text-xs text-slate-700 mt-0.5 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        {{ order.delivery_address }}
+                    </p>
+                </div>
+
+                {% if order.notes %}
+                <div>
+                    <span class="text-xs text-slate-400 block">Special Notes</span>
+                    <p class="text-xs text-slate-600 italic mt-0.5">{{ order.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Payment Details -->
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-400">Payment Breakdown</h3>
+
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-slate-500">Method</span>
+                    <span class="font-bold text-slate-900">{{ order.get_payment_method_display }}</span>
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-slate-500">Payment Status</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ order.payment_badge_color }}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </div>
+
+                {% if order.payment_method == 'UPI' %}
+                <div class="pt-2 border-t border-slate-100 text-xs">
+                    <span class="text-slate-400 block">Customer UTR / Ref Number:</span>
+                    {% if order.upi_ref_number %}
+                    <code class="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded block mt-1 tracking-wider text-sm">{{ order.upi_ref_number }}</code>
+                    {% else %}
+                    <span class="text-amber-600 font-semibold block mt-1">Pending submission</span>
+                    <a href="{% url 'payment_upi' order.order_number %}" class="mt-2 text-xs font-bold text-emerald-700 underline block">
+                        Submit UTR Now →
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Customer Cancellation Card -->
+            {% if order.can_be_cancelled_by_customer %}
+            <div class="bg-white rounded-3xl border border-rose-100 shadow-xs p-6 space-y-3">
+                <div class="flex items-center gap-2 text-rose-700 text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-ban text-rose-500"></i> Need to Cancel?
+                </div>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    You can cancel this order while it is awaiting dispatch. All items will be returned to stock immediately.
+                </p>
+                <form method="POST" action="{% url 'customer_cancel_order' order.order_number %}" onsubmit="return confirm('Are you sure you want to cancel Order #{{ order.order_number }}? This action will cancel your delivery immediately.');">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full py-3 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-2xs">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Cancel Order #{{ order.order_number }}</span>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+

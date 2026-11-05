@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Store Owner / Admin Sign In - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-6 bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        
+        <!-- Role Tabs Switcher -->
+        <div class="flex items-center p-1 bg-slate-100 rounded-2xl">
+            <a href="{% url 'customer_login' %}" class="flex-1 py-2 text-center text-xs font-semibold rounded-xl text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition-colors">
+                <i class="fa-solid fa-user text-slate-400"></i> Customer Login
+            </a>
+            <a href="{% url 'owner_login' %}" class="flex-1 py-2 text-center text-xs font-bold rounded-xl bg-slate-900 text-amber-300 shadow-sm flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-crown text-amber-400"></i> Owner Portal
+            </a>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center pt-2">
+            <div class="relative inline-block mb-3">
+                <img src="/static/images/logo.png" alt="HAP daily" class="h-14 w-auto rounded-2xl shadow-xs border border-orange-200 object-contain">
+                <span class="absolute -top-1.5 -right-2 bg-amber-400 text-amber-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-xs flex items-center gap-0.5">
+                    <i class="fa-solid fa-crown text-[9px]"></i> Owner
+                </span>
+            </div>
+            <h2 class="font-brand text-3xl font-extrabold text-slate-900 tracking-tight">
+                Store Owner Portal
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Arokya Milk Store • Manage orders, adjust prices, and add inventory.
+            </p>
+        </div>
+
+        <!-- One-Click Demo Owner Account -->
+        <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 text-xs flex items-center justify-between">
+            <div>
+                <span class="font-bold text-amber-950 block">Demo Store Owner Account</span>
+                <span class="text-amber-800">User: <code class="font-mono font-bold">owner</code> • Pass: <code class="font-mono font-bold">owner123</code></span>
+            </div>
+            <button type="button" onclick="fillOwner()" class="px-3 py-1.5 bg-slate-900 hover:bg-black text-amber-300 rounded-xl font-bold shadow-2xs transition-all">
+                Autofill
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form class="space-y-4" method="POST" action="{% url 'owner_login' %}">
+            {% csrf_token %}
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <div>
+                <label for="id_owner_username" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Owner Username or Email
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <input id="id_owner_username" name="username" type="text" required autofocus
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all"
+                        placeholder="e.g. owner or owner@freshdairy.in">
+                </div>
+            </div>
+
+            <div>
+                <label for="id_owner_password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Owner Password
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <input id="id_owner_password" name="password" type="password" required
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all"
+                        placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-md text-sm font-bold text-amber-300 bg-slate-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-key text-xs"></i>
+                <span>Sign In to Owner Dashboard</span>
+            </button>
+        </form>
+
+        <div class="text-center pt-2 border-t border-slate-100 text-xs text-slate-500 space-y-2">
+            <div>
+                New store owner?
+                <a href="{% url 'owner_register' %}" class="font-bold text-amber-700 hover:text-amber-800 ml-1">
+                    Register New Store Owner
+                </a>
+            </div>
+            <div>
+                Looking for regular customer deliveries?
+                <a href="{% url 'customer_login' %}" class="font-bold text-emerald-600 hover:text-emerald-700 ml-1">
+                    Go to Customer Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fillOwner() {
+        document.getElementById('id_owner_username').value = 'owner';
+        document.getElementById('id_owner_password').value = 'owner123';
+    }
+</script>
+{% endblock %}
+

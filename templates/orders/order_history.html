@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders & Delivery Tracking - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="font-brand text-3xl font-extrabold text-slate-900">Order History</h1>
+            <p class="text-sm text-slate-500">Track current milk delivery dispatches and view past orders.</p>
+        </div>
+        <a href="{% url 'catalog' %}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition-all flex items-center gap-2 self-start sm:self-auto">
+            <i class="fa-solid fa-basket-shopping"></i> Order Fresh Dairy
+        </a>
+    </div>
+
+    {% if orders %}
+    <div class="space-y-4">
+        {% for order in orders %}
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl font-bold shrink-0">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-brand font-bold text-slate-900 text-lg">#{{ order.order_number }}</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ order.status_badge_color }}">
+                                {{ order.get_order_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Placed on {{ order.created_at|date:"d M Y, h:i A" }} • Slot: <strong class="text-slate-600">{{ order.get_delivery_slot_display }}</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between sm:justify-end gap-3">
+                    <div class="text-left sm:text-right mr-1">
+                        <span class="text-xs text-slate-400 block font-medium">Total Amount</span>
+                        <span class="font-brand font-extrabold text-xl text-slate-900">₹{{ order.total_amount }}</span>
+                    </div>
+
+                    {% if order.can_be_cancelled_by_customer %}
+                    <form method="POST" action="{% url 'customer_cancel_order' order.order_number %}" onsubmit="return confirm('Cancel Order #{{ order.order_number }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center gap-1.5 shadow-2xs" title="Cancel this order">
+                            <i class="fa-solid fa-ban"></i>
+                            <span class="hidden sm:inline">Cancel</span>
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <a href="{% url 'order_detail' order.order_number %}"
+                        class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs shadow-sm transition-colors flex items-center gap-1.5">
+                        <span>Details</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Items Brief & Payment Strip -->
+            <div class="pt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-slate-600">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold text-slate-700">Items:</span>
+                    {% for item in order.items.all %}
+                    <span class="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-800 font-medium">
+                        {{ item.product_name }} ({{ item.unit }}) x {{ item.quantity }}
+                    </span>
+                    {% endfor %}
+                </div>
+
+                <div class="flex items-center gap-4 shrink-0">
+                    <span class="flex items-center gap-1">
+                        <span class="text-slate-400">Payment:</span>
+                        <strong class="text-slate-700">{{ order.get_payment_method_display }}</strong>
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ order.payment_badge_color }}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty Orders -->
+    <div class="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs max-w-lg mx-auto">
+        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-3xl mx-auto mb-4">
+            <i class="fa-solid fa-receipt"></i>
+        </div>
+        <h3 class="font-brand font-bold text-xl text-slate-800">No Orders Yet</h3>
+        <p class="text-sm text-slate-500 mt-1">You haven't placed any dairy orders yet. Start your morning milk routine today!</p>
+        <div class="mt-6">
+            <a href="{% url 'catalog' %}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition-all">
+                Browse Fresh Dairy
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

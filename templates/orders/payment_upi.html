@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}UPI Payment - Order #{{ order.order_number }} - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 p-6 sm:p-10 text-center">
+        
+        <!-- Header -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold mb-3">
+            <i class="fa-solid fa-qrcode"></i> Instant UPI Payment
+        </div>
+
+        <h1 class="font-brand text-3xl font-extrabold text-slate-900">
+            Scan to Complete Order
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">
+            Order Reference: <span class="font-mono font-bold text-slate-800">#{{ order.order_number }}</span>
+        </p>
+
+        <!-- Payable Amount Box -->
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 max-w-sm mx-auto">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 block">Total Payable Amount</span>
+            <span class="font-brand font-extrabold text-4xl text-emerald-800 mt-0.5 block">₹{{ order.total_amount }}</span>
+            <span class="text-[11px] text-emerald-600 font-medium">Slot: {{ order.get_delivery_slot_display }}</span>
+        </div>
+
+        <!-- QR Code Card -->
+        <div class="relative inline-block p-4 bg-white rounded-3xl border-2 border-emerald-500/80 shadow-md my-2 max-w-sm mx-auto">
+            
+            {% if upi_setting.custom_qr_image and upi_setting.qr_mode == 'CUSTOM' %}
+            <!-- Custom Standee QR Image Active -->
+            <div id="qr-custom-container" class="space-y-2">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-bold uppercase tracking-wider">
+                    Official Store Standee QR
+                </span>
+                <img src="{{ upi_setting.custom_qr_image.url }}?v={{ upi_setting.updated_at.timestamp }}" alt="Store UPI QR Code"
+                    class="w-64 h-64 mx-auto rounded-xl object-contain border border-slate-100 shadow-2xs">
+                <p class="text-xs text-slate-600 font-medium">
+                    Pay exactly <strong class="text-slate-900 font-bold">₹{{ order.total_amount }}</strong> to <strong class="text-slate-900">{{ upi_setting.merchant_name }}</strong>
+                </p>
+                {% if qr_data_uri or order.upi_qr_code %}
+                <button type="button" onclick="toggleQrMode()" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold underline mt-1">
+                    Switch to Dynamic QR with Pre-filled Amount
+                </button>
+                {% endif %}
+            </div>
+
+            {% if qr_data_uri or order.upi_qr_code %}
+            <div id="qr-dynamic-container" class="space-y-2 hidden">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+                    Amount Pre-filled (₹{{ order.total_amount }})
+                </span>
+                <img src="{{ qr_data_uri|default:order.upi_qr_code.url }}" alt="UPI QR Code for Order #{{ order.order_number }}"
+                    class="w-64 h-64 mx-auto rounded-xl object-contain">
+                <button type="button" onclick="toggleQrMode()" class="text-xs text-purple-700 hover:text-purple-800 font-bold underline mt-1">
+                    Switch to Official Store Standee QR
+                </button>
+            </div>
+            {% endif %}
+
+            {% elif upi_setting.custom_qr_image and upi_setting.qr_mode != 'CUSTOM' %}
+            <!-- Dynamic QR Active, but Custom Standee QR also available -->
+            <div id="qr-dynamic-container" class="space-y-2">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+                    Amount Pre-filled (₹{{ order.total_amount }})
+                </span>
+                <img src="{{ qr_data_uri|default:order.upi_qr_code.url }}" alt="UPI QR Code for Order #{{ order.order_number }}"
+                    class="w-64 h-64 mx-auto rounded-xl object-contain">
+                <button type="button" onclick="toggleQrMode()" class="text-xs text-purple-700 hover:text-purple-800 font-bold underline mt-1">
+                    Switch to Official Store Standee QR
+                </button>
+            </div>
+
+            <div id="qr-custom-container" class="space-y-2 hidden">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-bold uppercase tracking-wider">
+                    Official Store Standee QR
+                </span>
+                <img src="{{ upi_setting.custom_qr_image.url }}?v={{ upi_setting.updated_at.timestamp }}" alt="Store UPI QR Code"
+                    class="w-64 h-64 mx-auto rounded-xl object-contain border border-slate-100 shadow-2xs">
+                <p class="text-xs text-slate-600 font-medium">
+                    Pay exactly <strong class="text-slate-900 font-bold">₹{{ order.total_amount }}</strong> to <strong class="text-slate-900">{{ upi_setting.merchant_name }}</strong>
+                </p>
+                <button type="button" onclick="toggleQrMode()" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold underline mt-1">
+                    Switch to Dynamic QR with Pre-filled Amount
+                </button>
+            </div>
+
+            {% elif qr_data_uri or order.upi_qr_code %}
+            <!-- Dynamic Order QR Only -->
+            <div class="space-y-2">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+                    Amount Pre-filled (₹{{ order.total_amount }})
+                </span>
+                <img src="{{ qr_data_uri|default:order.upi_qr_code.url }}" alt="UPI QR Code for Order #{{ order.order_number }}"
+                    class="w-64 h-64 mx-auto rounded-xl object-contain">
+            </div>
+            {% else %}
+            <div class="w-64 h-64 flex items-center justify-center text-slate-400">
+                <span>Generating QR...</span>
+            </div>
+            {% endif %}
+            
+            <div class="mt-3 text-xs font-semibold text-slate-600 flex items-center justify-center gap-2">
+                <i class="fa-brands fa-google-pay text-base text-slate-700"></i>
+                <i class="fa-solid fa-mobile-screen-button text-purple-600"></i>
+                <i class="fa-solid fa-building-columns text-blue-600"></i>
+                <span>GPay • PhonePe • Paytm • BHIM</span>
+            </div>
+        </div>
+
+        <!-- Store VPA and Mobile Intent Button -->
+        <div class="mt-6 max-w-md mx-auto space-y-3">
+            <!-- VPA Copier -->
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-left">
+                <div>
+                    <span class="text-slate-400 text-[10px] block uppercase font-bold tracking-wider">Payee: {{ upi_setting.merchant_name }}</span>
+                    <span class="text-slate-500 font-medium">Store UPI ID:</span>
+                </div>
+                <code class="font-mono font-bold text-slate-800 text-sm">{{ upi_setting.upi_id }}</code>
+                <button type="button" onclick="copyToClipboard('{{ upi_setting.upi_id }}', 'UPI VPA copied to clipboard!')"
+                    class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg font-bold text-emerald-700 shadow-2xs transition-colors shrink-0">
+                    <i class="fa-regular fa-copy mr-1"></i> Copy
+                </button>
+            </div>
+
+            <!-- Deep Link for Mobile Browsers -->
+            {% if order.upi_intent_url %}
+            <a href="{{ order.upi_intent_url }}"
+                class="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-up-right-from-square text-xs text-emerald-400"></i>
+                <span>Open in Any UPI App</span>
+            </a>
+            {% endif %}
+
+            {% if upi_setting.instructions %}
+            <p class="text-[11px] text-slate-500 text-center italic">
+                {{ upi_setting.instructions }}
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- UTR / UPI Reference Number Submission Section -->
+        <div class="mt-10 pt-8 border-t border-slate-100 max-w-md mx-auto text-left">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">✓</span>
+                <h3 class="font-bold text-slate-900 text-base">Step 2: Enter Transaction UTR / Ref Number</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                After completing payment in your UPI app, enter the 12-digit UTR / Reference ID from your payment receipt for instant owner verification.
+            </p>
+
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    {{ form.upi_ref_number }}
+                    {% if form.upi_ref_number.errors %}
+                    <p class="text-xs text-rose-600 mt-1">{{ form.upi_ref_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="submit"
+                        class="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Confirm Payment & Submit</span>
+                    </button>
+                    <a href="{% url 'order_detail' order.order_number %}"
+                        class="py-3.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors">
+                        Pay Later
+                    </a>
+                </div>
+            </form>
+
+            <!-- Option to Switch to Cash on Delivery -->
+            <div class="mt-6 pt-5 border-t border-slate-200/60 text-center">
+                <span class="text-xs text-slate-500 block mb-2">Having trouble with UPI? Pay with cash instead:</span>
+                <form method="POST" action="{% url 'switch_to_cod' order.order_number %}">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-money-bill-wave text-amber-600"></i>
+                        <span>Switch to Cash on Delivery (Pay ₹{{ order.total_amount }} at Doorstep)</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function toggleQrMode() {
+    const customEl = document.getElementById('qr-custom-container');
+    const dynamicEl = document.getElementById('qr-dynamic-container');
+    if (customEl && dynamicEl) {
+        customEl.classList.toggle('hidden');
+        dynamicEl.classList.toggle('hidden');
+    }
+}
+</script>
+{% endblock %}
+

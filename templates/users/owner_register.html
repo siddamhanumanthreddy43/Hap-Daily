@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Register New Store Owner - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-xl w-full bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        
+        <!-- Role Tabs Switcher -->
+        <div class="flex items-center p-1 bg-slate-100 rounded-2xl mb-6">
+            <a href="{% url 'register' %}" class="flex-1 py-2 text-center text-xs font-semibold rounded-xl text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition-colors">
+                <i class="fa-solid fa-user text-slate-400"></i> Customer Sign Up
+            </a>
+            <a href="{% url 'owner_register' %}" class="flex-1 py-2 text-center text-xs font-bold rounded-xl bg-slate-900 text-amber-300 shadow-sm flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-crown text-amber-400"></i> Owner Registration
+            </a>
+        </div>
+
+        <div class="text-center mb-8">
+            <div class="relative inline-block mb-3">
+                <img src="/static/images/logo.png" alt="HAP daily" class="h-14 w-auto rounded-2xl shadow-xs border border-orange-200 object-contain">
+                <span class="absolute -top-1.5 -right-2 bg-amber-400 text-amber-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-xs flex items-center gap-0.5">
+                    <i class="fa-solid fa-crown text-[9px]"></i> Owner
+                </span>
+            </div>
+            <h2 class="font-brand text-3xl font-extrabold text-slate-900 tracking-tight">
+                New Store Owner Registration
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Arokya Milk Store • Register to manage orders, set prices, and upload products.
+            </p>
+        </div>
+
+        <form class="space-y-4" method="POST" action="{% url 'owner_register' %}">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm mb-4">
+                <p class="font-bold mb-1">Please fix the following:</p>
+                <ul class="list-disc list-inside text-xs space-y-1">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Owner Full Name</label>
+                    <input type="text" name="first_name" required value="{{ form.first_name.value|default:'' }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="e.g. Ramesh Yadav">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Username</label>
+                    <input type="text" name="username" required value="{{ form.username.value|default:'' }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="e.g. ramesh_owner">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Store Email Address</label>
+                    <input type="email" name="email" required value="{{ form.email.value|default:'' }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="owner@arokyamilk.in">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Official Contact Phone</label>
+                    <input type="tel" name="phone" required value="{{ form.phone.value|default:'' }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="+91 98450 11223">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Store / Dairy Outlet Address</label>
+                <textarea name="delivery_address" rows="2" required
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                    placeholder="Arokya Milk Distribution Center, No. 14, Main Road">{{ form.delivery_address.value|default:'' }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">City</label>
+                    <input type="text" name="city" required value="{{ form.city.value|default:'Bengaluru' }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Pincode</label>
+                    <input type="text" name="pincode" required value="{{ form.pincode.value|default:'' }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="560066">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Account Password</label>
+                    <input type="password" name="password1" required
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Confirm Password</label>
+                    <input type="password" name="password2" required
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                        placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+                <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
+                <span>This registration automatically provisions Store Owner role privileges, granting instant access to `/owner/dashboard`.</span>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit"
+                    class="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-md text-sm font-bold text-amber-300 bg-slate-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-crown text-amber-400"></i>
+                    <span>Register as Store Owner</span>
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center pt-6 border-t border-slate-100 text-sm text-slate-600 mt-6">
+            Already have an owner account?
+            <a href="{% url 'owner_login' %}" class="font-bold text-amber-700 hover:text-amber-800 ml-1">
+                Owner Portal Sign In
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - Arokya Milk Store{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full space-y-8 bg-white p-8 sm:p-12 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+        
+        <div>
+            <img src="/static/images/logo.png" alt="HAP daily" class="h-16 w-auto mx-auto rounded-2xl shadow-md border border-orange-200 mb-4 object-contain">
+            <h1 class="font-brand text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Welcome to Arokya Milk Store
+            </h1>
+            <p class="mt-2 text-sm text-slate-500 max-w-md mx-auto">
+                HAP daily Official Retail Outlet • Select your portal to continue.
+            </p>
+        </div>
+
+        <!-- Role Selection Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left pt-4">
+            
+            <!-- Customer Card -->
+            <a href="{% url 'customer_login' %}" class="group p-6 rounded-3xl border-2 border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 hover:border-emerald-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl mb-4 shadow-sm group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">For Shoppers & Families</span>
+                    <h3 class="font-brand font-bold text-xl text-slate-900 mt-1">Customer Login</h3>
+                    <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                        Order fresh cow/buffalo milk, curd, paneer, and ice creams with morning/evening doorstep slots.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-emerald-200/60 flex items-center justify-between text-xs font-bold text-emerald-800">
+                    <span>Sign in as Customer</span>
+                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <!-- Owner Card -->
+            <a href="{% url 'owner_login' %}" class="group p-6 rounded-3xl border-2 border-amber-200 bg-amber-50/40 hover:bg-amber-50 hover:border-amber-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-slate-900 text-amber-300 flex items-center justify-center text-xl mb-4 shadow-sm group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-800">For Store Managers</span>
+                    <h3 class="font-brand font-bold text-xl text-slate-900 mt-1">Owner / Admin Portal</h3>
+                    <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                        Dedicated dashboard to accept/reject incoming orders, edit product prices, and add new dairy items with photos.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-amber-200/60 flex items-center justify-between text-xs font-bold text-amber-900">
+                    <span>Sign in as Store Owner</span>
+                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+        </div>
+
+        <div class="pt-4 text-xs text-slate-500 flex flex-wrap items-center justify-center gap-3">
+            <span>New here?</span>
+            <a href="{% url 'register' %}" class="text-emerald-700 font-bold hover:underline">Register as Customer</a>
+            <span>•</span>
+            <a href="{% url 'owner_register' %}" class="text-amber-700 font-bold hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-crown text-[10px]"></i> Register as Store Owner
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
