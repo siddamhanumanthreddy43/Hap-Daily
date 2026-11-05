@@ -5,14 +5,24 @@ Django settings for freshdairy project.
 from pathlib import Path
 from decimal import Decimal
 import os
+import shutil
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-freshdairy-secret-key-production-ready-config-2026'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-freshdairy-secret-key-production-ready-config-2026')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://*.now.sh',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:3000',
+    'http://localhost:8000',
+    'http://localhost:3000',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -59,12 +69,52 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'freshdairy.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Serverless environment detection (Vercel / AWS Lambda)
+IS_VERCEL = 'VERCEL' in os.environ or 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
+
+if os.environ.get('DATABASE_URL'):
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=os.environ.get('DATABASE_URL'),
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+    except ImportError:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+elif IS_VERCEL:
+    # On Vercel, /var/task is strictly read-only.
+    # Copy pre-seeded SQLite database to writable /tmp/ if not already present.
+    tmp_db = Path('/tmp/db.sqlite3')
+    orig_db = BASE_DIR / 'db.sqlite3'
+    if orig_db.exists() and not tmp_db.exists():
+        try:
+            shutil.copyfile(orig_db, tmp_db)
+        except Exception:
+            pass
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': str(tmp_db) if tmp_db.exists() else str(orig_db),
+        }
     }
-}
+    # Use signed cookie sessions so read/writes are stateless and client-side on serverless
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_USER_MODEL = 'users.CustomUser'
 

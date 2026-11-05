@@ -172,16 +172,37 @@ class UpiSetting(models.Model):
     @classmethod
     def get_settings(cls):
         """
-        Singleton-style helper: returns the active configuration or creates default.
+        Singleton-style helper: returns the active configuration without triggering
+        unnecessary write locks on read-only serverless databases.
         """
-        setting, _ = cls.objects.get_or_create(id=1, defaults={
-            'merchant_name': 'Arokya Milk Store',
-            'upi_id': 'arokyamilk@upi',
-            'qr_mode': 'DYNAMIC',
-            'instructions': 'Scan with any UPI app (GPay, PhonePe, Paytm, BHIM) and enter the 12-digit UTR reference number below.',
-            'delivery_fee': Decimal('5.00'),
-            'free_delivery_threshold': Decimal('199.00'),
-            'is_active': True,
-        })
-        return setting
+        try:
+            setting = cls.objects.filter(id=1).first()
+            if setting:
+                return setting
+        except Exception:
+            pass
+
+        try:
+            setting, _ = cls.objects.get_or_create(id=1, defaults={
+                'merchant_name': 'Arokya Milk Store',
+                'upi_id': 'arokyamilk@upi',
+                'qr_mode': 'DYNAMIC',
+                'instructions': 'Scan with any UPI app (GPay, PhonePe, Paytm, BHIM) and enter the 12-digit UTR reference number below.',
+                'delivery_fee': Decimal('5.00'),
+                'free_delivery_threshold': Decimal('199.00'),
+                'is_active': True,
+            })
+            return setting
+        except Exception:
+            # Fallback memory instance if database is read-only (e.g. AWS Lambda / Vercel initial load)
+            return cls(
+                id=1,
+                merchant_name='Arokya Milk Store',
+                upi_id='arokyamilk@upi',
+                qr_mode='DYNAMIC',
+                instructions='Scan with any UPI app (GPay, PhonePe, Paytm, BHIM) and enter the 12-digit UTR reference number below.',
+                delivery_fee=Decimal('5.00'),
+                free_delivery_threshold=Decimal('199.00'),
+                is_active=True,
+            )
 

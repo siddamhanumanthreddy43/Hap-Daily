@@ -7,8 +7,8 @@ class Cart:
     def __init__(self, request):
         self.session = request.session
         cart = self.session.get('cart')
-        if not cart:
-            cart = self.session['cart'] = {}
+        if cart is None:
+            cart = {}
         self.cart = cart
 
     def add(self, product, quantity=1, override_quantity=False):
@@ -27,6 +27,7 @@ class Cart:
         if self.cart[product_id]['quantity'] <= 0:
             self.remove(product)
         else:
+            self.session['cart'] = self.cart
             self.save()
 
     def update(self, product, quantity):
@@ -36,10 +37,12 @@ class Cart:
         product_id = str(product.id)
         if product_id in self.cart:
             del self.cart[product_id]
+            self.session['cart'] = self.cart
             self.save()
 
     def clear(self):
-        del self.session['cart']
+        if 'cart' in self.session:
+            del self.session['cart']
         self.save()
 
     def save(self):
